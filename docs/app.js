@@ -1,6 +1,8 @@
 'use strict';
 const methods = ['EFS','RFECV','LassoCV','Backward','SFS'];
 const colors = {EFS:'#087f78',RFECV:'#d58635',LassoCV:'#6c62ae',Backward:'#3589b0',SFS:'#b45877'};
+const darkColors = {EFS:'#68d8bd',RFECV:'#f0b56b',LassoCV:'#b6a5ff',Backward:'#79c7ef',SFS:'#f1a0bd'};
+const schemeColor = name => (document.documentElement.dataset.theme === 'dark' ? darkColors : colors)[name];
 const notes = {EFS:'窮舉每個特徵數的所有組合，以訓練交叉驗證 RMSE 選出組合。',RFECV:'固定數量的 RFE 路徑：逐步移除線性迴歸係數最小的特徵。此路徑保留原程式未標準化的設定。',LassoCV:'以標準化 LassoCV 係數絕對值排序；同分或零值以標準化 OLS 係數排序，再用選取的特徵重訓線性迴歸。',Backward:'逐步移除 OLS p-value 最大的特徵，直到剩下指定數量；固定數量曲線不使用 0.05 停止條件。',SFS:'向前逐步加入特徵，每一步依訓練交叉驗證 RMSE 選擇。'};
 let method = 'Backward', count = 2, compare = false;
 const $ = id => document.getElementById(id);
@@ -24,8 +26,8 @@ function chart(container,metric){
   svg.append(svgNode('text',{x:(left+width-right)/2,y:height-8,'text-anchor':'middle',class:'chart-label'},'Number of Features'));
   const ordered=groups.filter(n=>n!==method).concat(method);
   for(const name of ordered){const rows=rowsFor(name);const active=name===method;
-    svg.append(svgNode('polyline',{points:rows.map(r=>`${x(r.count)},${y(r[metric])}`).join(' '),fill:'none',stroke:colors[name],'stroke-width':active?2.8:1.8,'stroke-opacity':active?1:.65,'stroke-dasharray':!active&&compare?'6 4':'none'}));
-    for(const row of rows){const point=svgNode('circle',{cx:x(row.count),cy:y(row[metric]),r:active&&row.count===count?6:4,fill:colors[name],stroke:'white','stroke-width':1.5,class:'chart-point',tabindex:0,role:'button','aria-label':`${name}, ${row.count} features, ${metric} ${fmt(row[metric],4)}`});point.append(svgNode('title',{},`${name} · ${row.count} features\n${metric}: ${fmt(row[metric],6)}\n${row.features.join(', ')}`));point.addEventListener('click',()=>choose(name,row.count));point.addEventListener('keydown',event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();choose(name,row.count);}});svg.append(point);}
+    svg.append(svgNode('polyline',{points:rows.map(r=>`${x(r.count)},${y(r[metric])}`).join(' '),fill:'none',stroke:schemeColor(name),'stroke-width':active?2.8:1.8,'stroke-opacity':active?1:.65,'stroke-dasharray':!active&&compare?'6 4':'none'}));
+    for(const row of rows){const point=svgNode('circle',{cx:x(row.count),cy:y(row[metric]),r:active&&row.count===count?6:4,fill:schemeColor(name),stroke:'white','stroke-width':1.5,class:'chart-point',tabindex:0,role:'button','aria-label':`${name}, ${row.count} features, ${metric} ${fmt(row[metric],4)}`});point.append(svgNode('title',{},`${name} · ${row.count} features\n${metric}: ${fmt(row[metric],6)}\n${row.features.join(', ')}`));point.addEventListener('click',()=>choose(name,row.count));point.addEventListener('keydown',event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();choose(name,row.count);}});svg.append(point);}
   }
   $(container).replaceChildren(svg);
 }
@@ -35,7 +37,7 @@ function render(){
   $('feature-count').value=count;$('count-label').textContent=`${count} / 5`;
   $('method-note').textContent=notes[method];$('table-title').textContent=`${method} · 特徵組合與表現`;$('table-badge').textContent='5 combinations';
   document.querySelectorAll('[role=tab]').forEach(button=>{const active=button.dataset.method===method;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1;});
-  $('legend').replaceChildren(...(compare?methods:[method]).map(name=>{const item=document.createElement('span');const line=document.createElement('i');line.style.background=colors[name];item.append(line,document.createTextNode(name));return item;}));
+  $('legend').replaceChildren(...(compare?methods:[method]).map(name=>{const item=document.createElement('span');const line=document.createElement('i');line.style.background=schemeColor(name);item.append(line,document.createTextNode(name));return item;}));
   chart('rmse-chart','rmse');chart('r2-chart','r2');
   $('result-rows').replaceChildren(...rowsFor(method).map(row=>{const tr=document.createElement('tr');tr.className=row.count===count?'selected':'';tr.tabIndex=0;tr.setAttribute('aria-label',`${method}, ${row.count} features`);tr.setAttribute('aria-selected',String(row.count===count));
     const k=document.createElement('td');k.textContent=String(row.count).padStart(2,'0');const features=document.createElement('td');row.features.forEach(name=>{const tag=document.createElement('span');tag.className='feature-tag';tag.textContent=name;features.append(tag);});const rmse=document.createElement('td');rmse.textContent=fmt(row.rmse,6);const r2=document.createElement('td');r2.textContent=fmt(row.r2,6);tr.append(k,features,rmse,r2);tr.addEventListener('click',()=>choose(method,row.count));tr.addEventListener('keydown',event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();choose(method,row.count);}});return tr;}));
@@ -47,3 +49,25 @@ $('feature-count').addEventListener('input',event=>{count=Number(event.target.va
 $('download').addEventListener('click',()=>{const header=['Method','Number of Features','Selected Features','RMSE','R-squared'];const escape=value=>'"'+String(value).replaceAll('"','""')+'"';const csv=[header,...EXPERIMENT.curves.map(r=>[r.method,r.count,'['+r.features.join(', ')+']',r.rmse,r.r2])].map(row=>row.map(escape).join(',')).join('\r\n');const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download='all_schemes_feature_count_results.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
 $('auto-results').replaceChildren(...EXPERIMENT.automatic.map(row=>{const tr=document.createElement('tr');for(const value of [row.method,row.count,fmt(row.cv_rmse),fmt(row.test_rmse),fmt(row.test_r2,4)]){const td=document.createElement('td');td.textContent=value;tr.append(td);}return tr;}));
 const params=new URLSearchParams(location.search);if(methods.includes(params.get('method')))method=params.get('method');const requested=Number(params.get('k'));if(Number.isInteger(requested)&&requested>=1&&requested<=5)count=requested;compare=params.get('compare')==='1';$('compare').checked=compare;render();
+
+function updateThemeToggle() {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  $('theme-toggle').textContent = dark ? '☀ 明亮模式' : '☾ 黑暗模式';
+  $('theme-toggle').setAttribute('aria-label', dark ? '切換明亮模式' : '切換黑暗模式');
+  $('theme-toggle').setAttribute('aria-pressed', String(dark));
+}
+$('theme-toggle').addEventListener('click', () => {
+  const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = theme;
+  try { localStorage.setItem('feature-lab-theme', theme); } catch {}
+  updateThemeToggle();
+  render();
+});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+  try { if (localStorage.getItem('feature-lab-theme')) return; } catch {}
+  document.documentElement.dataset.theme = event.matches ? 'dark' : 'light';
+  updateThemeToggle();
+  render();
+});
+updateThemeToggle();
+
