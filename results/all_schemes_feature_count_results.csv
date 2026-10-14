@@ -1,0 +1,26 @@
+Number of Features,Selected Features,RMSE,R-squared,Method
+1,[R&D Spend],7714.334890830185,0.9265108109341951,EFS
+2,"[R&D Spend, Administration]",9152.274782350905,0.8965609365509308,EFS
+3,"[R&D Spend, Administration, Marketing Spend]",8995.90580336142,0.900065308303732,EFS
+4,"[State_California, R&D Spend, Administration, Marketing Spend]",9010.31225499439,0.899744972111299,EFS
+5,"[State_New York, State_California, R&D Spend, Administration, Marketing Spend]",9055.957323501078,0.8987266414319106,EFS
+1,[State_California],35769.73536283392,-0.5800030766990909,RFECV
+2,"[State_New York, State_California]",35902.08192702272,-0.5917166005474785,RFECV
+3,"[State_New York, State_California, R&D Spend]",7946.372243720277,0.922023400960793,RFECV
+4,"[State_New York, State_California, R&D Spend, Administration]",9316.536408854245,0.8928146452937172,RFECV
+5,"[State_New York, State_California, R&D Spend, Administration, Marketing Spend]",9055.957323501078,0.8987266414319106,RFECV
+1,[R&D Spend],7714.334890830185,0.9265108109341951,LassoCV
+2,"[R&D Spend, Marketing Spend]",8206.32881316585,0.9168381183550247,LassoCV
+3,"[R&D Spend, Administration, Marketing Spend]",8995.90580336142,0.900065308303732,LassoCV
+4,"[State_California, R&D Spend, Administration, Marketing Spend]",9010.31225499439,0.899744972111299,LassoCV
+5,"[State_New York, State_California, R&D Spend, Administration, Marketing Spend]",9055.957323501078,0.8987266414319106,LassoCV
+1,[R&D Spend],7714.334890830185,0.9265108109341951,Backward
+2,"[R&D Spend, Marketing Spend]",8206.32881316585,0.9168381183550247,Backward
+3,"[R&D Spend, Administration, Marketing Spend]",8995.90580336142,0.900065308303732,Backward
+4,"[State_New York, R&D Spend, Administration, Marketing Spend]",9015.112541602854,0.8996381209725023,Backward
+5,"[State_New York, State_California, R&D Spend, Administration, Marketing Spend]",9055.957323501078,0.8987266414319106,Backward
+1,[R&D Spend],7714.334890830185,0.9265108109341951,SFS
+2,"[R&D Spend, Administration]",9152.274782350905,0.8965609365509308,SFS
+3,"[R&D Spend, Administration, Marketing Spend]",8995.90580336142,0.900065308303732,SFS
+4,"[State_California, R&D Spend, Administration, Marketing Spend]",9010.31225499439,0.899744972111299,SFS
+5,"[State_New York, State_California, R&D Spend, Administration, Marketing Spend]",9055.957323501078,0.8987266414319106,SFS
